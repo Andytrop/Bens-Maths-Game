@@ -15,10 +15,10 @@ const Login = ({ onLogin }) => {
       password === process.env.REACT_APP_PASSWORD
     ) {
       onLogin(username);
-    } else {
-      setError('Invalid credentials');
-    }
-  };
+    } else setError(
+        `Invalid credentials. Expected username: ${process.env.REACT_APP_USERNAME} and password: ${process.env.REACT_APP_PASSWORD}`
+      );
+  }
 
   return (
     <div>
