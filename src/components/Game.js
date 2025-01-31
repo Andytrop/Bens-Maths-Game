@@ -8,7 +8,7 @@ function generateProblem() {
   let a = Math.floor(Math.random() * 10) + 1;
   let b = Math.floor(Math.random() * 10) + 1;
   if (operation === 'divide') {
-    a = a * b;
+    a = a * b; // ensures an integer result for division
   }
   return { a, b, operation };
 }
@@ -20,6 +20,8 @@ const Game = () => {
   const [timeLeft, setTimeLeft] = useState(20);
   const [joke, setJoke] = useState(null);
   const [gameOver, setGameOver] = useState(false);
+  // New state to track history of answers
+  const [history, setHistory] = useState([]);
 
   // Timer effect
   useEffect(() => {
@@ -43,17 +45,37 @@ const Game = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    let correctAnswer =
+
+    // Determine the correct answer for the current problem
+    const correctAnswer =
       problem.operation === 'multiply'
         ? problem.a * problem.b
         : problem.a / problem.b;
-    if (parseInt(answer, 10) === correctAnswer) {
+    
+    const userAnswer = parseInt(answer, 10);
+
+    // Update score if correct
+    if (userAnswer === correctAnswer) {
       setScore(score + 1);
     }
+    
+    // Record the current attempt in history
+    const record = {
+      problem: problem.operation === 'multiply'
+        ? `${problem.a} x ${problem.b}`
+        : `${problem.a} ÷ ${problem.b}`,
+      userAnswer: answer,
+      correctAnswer: correctAnswer,
+      isCorrect: userAnswer === correctAnswer
+    };
+    setHistory((prevHistory) => [...prevHistory, record]);
+
+    // Prepare next problem
     setAnswer('');
     setProblem(generateProblem());
   };
 
+  // When game is over, display summary and (if applicable) a joke
   if (gameOver) {
     return (
       <div className="container text-center mt-5">
@@ -67,10 +89,45 @@ const Game = () => {
         ) : (
           <p>Good effort! Try again to earn a joke.</p>
         )}
+        <hr />
+        <h3>Answer Summary</h3>
+        {history.length > 0 ? (
+          <table className="table table-striped mt-3">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Problem</th>
+                <th>Your Answer</th>
+                <th>Correct Answer</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody>
+              {history.map((record, index) => (
+                <tr key={index}>
+                  <td>{index + 1}</td>
+                  <td>{record.problem}</td>
+                  <td>{record.userAnswer}</td>
+                  <td>{record.correctAnswer}</td>
+                  <td>
+                    {record.isCorrect ? (
+                      <span className="text-success">Correct</span>
+                    ) : (
+                      <span className="text-danger">Incorrect</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>No attempts recorded.</p>
+        )}
       </div>
     );
   }
 
+  // During the game, display the problem, timer, and score
   return (
     <div className="container text-center mt-5">
       <h2>Math Game</h2>
