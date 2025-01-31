@@ -1,29 +1,36 @@
 // src/components/Game.js
 import React, { useState, useEffect } from 'react';
+import Confetti from 'react-confetti';
 
+// Set threshold to 3 for a joke reward and celebration
 const threshold = 3;
 
+// Generate a random math problem (multiplication or division)
 function generateProblem() {
   const operation = Math.random() < 0.5 ? 'multiply' : 'divide';
   let a = Math.floor(Math.random() * 10) + 1;
   let b = Math.floor(Math.random() * 10) + 1;
   if (operation === 'divide') {
-    a = a * b; // ensures an integer result for division
+    a = a * b; // ensures division results in an integer
   }
   return { a, b, operation };
 }
 
 const Game = () => {
+  // Initialize state
   const [problem, setProblem] = useState(generateProblem());
   const [answer, setAnswer] = useState('');
   const [score, setScore] = useState(0);
+  // Set the timer to 20 seconds
   const [timeLeft, setTimeLeft] = useState(20);
   const [joke, setJoke] = useState(null);
   const [gameOver, setGameOver] = useState(false);
-  // New state to track history of answers
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState([]); // tracks user attempts
 
-  // Timer effect
+  // State to control confetti visibility
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  // Timer effect: decrease time every second until time runs out
   useEffect(() => {
     if (timeLeft <= 0) {
       setGameOver(true);
@@ -33,20 +40,30 @@ const Game = () => {
     return () => clearTimeout(timerId);
   }, [timeLeft]);
 
-  // Effect for fetching a joke if the score qualifies
+  // Effect for fetching a joke if the user meets or exceeds the threshold
   useEffect(() => {
     if (gameOver && score >= threshold) {
       fetch('https://official-joke-api.appspot.com/jokes/random')
         .then((response) => response.json())
         .then((data) => setJoke(`${data.setup} ${data.punchline}`))
         .catch(() => setJoke("Couldn't load a joke this time."));
+
+      // Enable confetti when game is over and score is high enough
+      setShowConfetti(true);
+
+      // Hide confetti after 5 seconds
+      const confettiTimeout = setTimeout(() => {
+        setShowConfetti(false);
+      }, 5000);
+
+      return () => clearTimeout(confettiTimeout);
     }
   }, [gameOver, score]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Determine the correct answer for the current problem
+    // Calculate the correct answer based on the problem
     const correctAnswer =
       problem.operation === 'multiply'
         ? problem.a * problem.b
@@ -54,31 +71,41 @@ const Game = () => {
     
     const userAnswer = parseInt(answer, 10);
 
-    // Update score if correct
+    // Update the score if the answer is correct
     if (userAnswer === correctAnswer) {
       setScore(score + 1);
     }
     
-    // Record the current attempt in history
+    // Create a record of the attempt
     const record = {
-      problem: problem.operation === 'multiply'
-        ? `${problem.a} x ${problem.b}`
-        : `${problem.a} ÷ ${problem.b}`,
+      problem:
+        problem.operation === 'multiply'
+          ? `${problem.a} x ${problem.b}`
+          : `${problem.a} ÷ ${problem.b}`,
       userAnswer: answer,
       correctAnswer: correctAnswer,
-      isCorrect: userAnswer === correctAnswer
+      isCorrect: userAnswer === correctAnswer,
     };
     setHistory((prevHistory) => [...prevHistory, record]);
 
-    // Prepare next problem
+    // Clear the answer and generate the next problem
     setAnswer('');
     setProblem(generateProblem());
   };
 
-  // When game is over, display summary and (if applicable) a joke
+  // When the game is over, display the summary, joke, and confetti if applicable
   if (gameOver) {
     return (
-      <div className="container text-center mt-5">
+      <div className="container text-center mt-5" style={{ position: 'relative' }}>
+        {/* Conditionally render confetti if active */}
+        {score >= threshold && showConfetti && (
+          <Confetti
+            width={window.innerWidth}
+            height={window.innerHeight}
+            gravity={0.1}  // Lower gravity for a slower descent
+            numberOfPieces={100} // Reduced number of pieces
+          />
+        )}
         <h2>Time's up!</h2>
         <p>Your score: {score}</p>
         {score >= threshold ? (
@@ -127,7 +154,7 @@ const Game = () => {
     );
   }
 
-  // During the game, display the problem, timer, and score
+  // During the game, show the current problem, timer, and score
   return (
     <div className="container text-center mt-5">
       <h2>Math Game</h2>
