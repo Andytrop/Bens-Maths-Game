@@ -8,8 +8,12 @@ const Login = ({ onLogin }) => {
 
   const handleSubmit = e => {
     e.preventDefault();
-    // For simplicity, hardcode a username and password.
-    if (username === 'ben' && password === 'nptfc') {
+
+    // Instead of hardcoding credentials here, use environment variables
+    if (
+      username === process.env.REACT_APP_USERNAME &&
+      password === process.env.REACT_APP_PASSWORD
+    ) {
       onLogin(username);
     } else {
       setError('Invalid credentials');
