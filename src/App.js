@@ -6,7 +6,7 @@ import Footer from './components/Footer';
 import Login from './components/Login';
 import Home from './components/Home';
 import HistoricScores from './components/HistoricScores';
-import MedGame from './components/games/MedGame';  // Updated import (ensure file name and path are correct)
+import DCGame from './components/games/DCGame';
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -21,21 +21,23 @@ function App() {
     <Router>
       <Header />
       <Routes>
+        {/* Default route: show Login if not logged in; if logged in, redirect to Home */}
         <Route
           path="/"
-          element={
-            loggedIn ? <Navigate to="/home" /> : <Login onLogin={handleLogin} />
-          }
+          element={loggedIn ? <Navigate to="/home" /> : <Login onLogin={handleLogin} />}
         />
+        {/* Home page for game selection */}
         <Route
           path="/home"
           element={loggedIn ? <Home /> : <Navigate to="/" />}
         />
-        <Route
-          path="/game"
-          element={loggedIn ? <MedGame playerName={player} /> : <Navigate to="/" />}
-        />
+        {/* Historic Scores page */}
         <Route path="/historic-scores" element={<HistoricScores />} />
+        {/* Dynamic Game Route: level parameter passed to DCGame */}
+        <Route
+          path="/game/:level"
+          element={loggedIn ? <DCGame playerName={player} /> : <Navigate to="/" />}
+        />
       </Routes>
       <Footer />
     </Router>

@@ -1,21 +1,17 @@
-// src/games/med-game.js
+// src/components/games/DCGame.js
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import Results from '../../components/Results';
+import { generateProblem } from '../../components/games/DCGameLogic';
 
 const threshold = 3;
 
-function generateProblem() {
-  const operation = Math.random() < 0.5 ? 'multiply' : 'divide';
-  let a = Math.floor(Math.random() * 10) + 1;
-  let b = Math.floor(Math.random() * 10) + 1;
-  if (operation === 'divide') {
-    a = a * b; // ensures division results in an integer
-  }
-  return { a, b, operation };
-}
+const DCGame = ({ playerName }) => {
+  // Get the level from the URL parameters
+  const { level } = useParams();  // level is expected to be "easy", "medium", "hard", or "ultra"
 
-const MedGame = ({ playerName }) => {
-  const [problem, setProblem] = useState(generateProblem());
+  // Set the difficulty for generateProblem based on the level
+  const [problem, setProblem] = useState(generateProblem(level));
   const [answer, setAnswer] = useState('');
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(20);
@@ -34,18 +30,16 @@ const MedGame = ({ playerName }) => {
     return () => clearTimeout(timerId);
   }, [timeLeft]);
 
-  // When game is over: save historic score, fetch joke (if score is high enough), and show confetti
+  // When the game is over: save historic score, fetch a joke (if score is high enough), and show confetti
   useEffect(() => {
     if (gameOver) {
-      // Retrieve historic scores or initialize an empty array
       const historicScores = JSON.parse(localStorage.getItem('historicScores')) || [];
-      // Create a new score record including additional properties: game and level
       const newScore = {
         player: playerName || 'Anonymous',
         score,
         date: new Date().toLocaleString(),
         game: "Divide and Multiply",
-        level: "medium",
+        level: level || "medium",  // Use the URL parameter, fallback to "medium"
       };
       historicScores.push(newScore);
       localStorage.setItem('historicScores', JSON.stringify(historicScores));
@@ -62,15 +56,12 @@ const MedGame = ({ playerName }) => {
         return () => clearTimeout(confettiTimeout);
       }
     }
-  }, [gameOver, score, playerName]);
+  }, [gameOver, score, playerName, level]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    const correctAnswer =
-      problem.operation === 'multiply'
-        ? problem.a * problem.b
-        : problem.a / problem.b;
+    const { a, b, operation } = problem;
+    const correctAnswer = operation === 'multiply' ? a * b : a / b;
     const userAnswer = parseInt(answer, 10);
 
     if (userAnswer === correctAnswer) {
@@ -78,17 +69,15 @@ const MedGame = ({ playerName }) => {
     }
 
     const record = {
-      problem:
-        problem.operation === 'multiply'
-          ? `${problem.a} x ${problem.b}`
-          : `${problem.a} ÷ ${problem.b}`,
+      problem: operation === 'multiply' ? `${a} x ${b}` : `${a} ÷ ${b}`,
       userAnswer: answer,
       correctAnswer,
       isCorrect: userAnswer === correctAnswer,
     };
+
     setHistory((prevHistory) => [...prevHistory, record]);
     setAnswer('');
-    setProblem(generateProblem());
+    setProblem(generateProblem(level));
   };
 
   const restartGame = () => {
@@ -98,7 +87,7 @@ const MedGame = ({ playerName }) => {
     setGameOver(false);
     setJoke(null);
     setShowConfetti(false);
-    setProblem(generateProblem());
+    setProblem(generateProblem(level));
   };
 
   if (gameOver) {
@@ -116,7 +105,7 @@ const MedGame = ({ playerName }) => {
 
   return (
     <div className="container text-center mt-5">
-      <h2>Math Game</h2>
+      <h2>Math Game ({level && level.charAt(0).toUpperCase() + level.slice(1)})</h2>
       <p>Time Left: {timeLeft} seconds</p>
       <p>Score: {score}</p>
       <div className="my-4">
@@ -142,4 +131,4 @@ const MedGame = ({ playerName }) => {
   );
 };
 
-export default MedGame;
+export default DCGame;
