@@ -40,7 +40,7 @@ const Game = () => {
     return () => clearTimeout(timerId);
   }, [timeLeft]);
 
-  // Effect for fetching a joke if the user meets or exceeds the threshold
+  // Effect for fetching a joke and showing confetti if the user meets or exceeds the threshold
   useEffect(() => {
     if (gameOver && score >= threshold) {
       fetch('https://official-joke-api.appspot.com/jokes/random')
@@ -68,14 +68,14 @@ const Game = () => {
       problem.operation === 'multiply'
         ? problem.a * problem.b
         : problem.a / problem.b;
-    
+
     const userAnswer = parseInt(answer, 10);
 
     // Update the score if the answer is correct
     if (userAnswer === correctAnswer) {
       setScore(score + 1);
     }
-    
+
     // Create a record of the attempt
     const record = {
       problem:
@@ -90,6 +90,17 @@ const Game = () => {
 
     // Clear the answer and generate the next problem
     setAnswer('');
+    setProblem(generateProblem());
+  };
+
+  // Function to restart the game
+  const restartGame = () => {
+    setScore(0);
+    setTimeLeft(20);
+    setHistory([]);
+    setGameOver(false);
+    setJoke(null);
+    setShowConfetti(false);
     setProblem(generateProblem());
   };
 
@@ -150,6 +161,10 @@ const Game = () => {
         ) : (
           <p>No attempts recorded.</p>
         )}
+        {/* Play Again Button */}
+        <button className="btn btn-primary mt-4" onClick={restartGame}>
+          Play Again
+        </button>
       </div>
     );
   }
