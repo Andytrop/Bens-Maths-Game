@@ -1,6 +1,7 @@
 // src/components/Game.js
 import React, { useState, useEffect } from 'react';
 import Confetti from 'react-confetti';
+import Footer from './Footer';
 
 // Set threshold to 3 for a joke reward and celebration
 const threshold = 3;
@@ -16,7 +17,7 @@ function generateProblem() {
   return { a, b, operation };
 }
 
-const Game = () => {
+const Game = ({ playerName }) => {
   // Initialize state
   const [problem, setProblem] = useState(generateProblem());
   const [answer, setAnswer] = useState('');
@@ -40,25 +41,35 @@ const Game = () => {
     return () => clearTimeout(timerId);
   }, [timeLeft]);
 
-  // Effect for fetching a joke and showing confetti if the user meets or exceeds the threshold
+  // Effect for fetching a joke and showing confetti when the game ends
   useEffect(() => {
-    if (gameOver && score >= threshold) {
-      fetch('https://official-joke-api.appspot.com/jokes/random')
-        .then((response) => response.json())
-        .then((data) => setJoke(`${data.setup} ${data.punchline}`))
-        .catch(() => setJoke("Couldn't load a joke this time."));
+    if (gameOver) {
+      // Store the score in localStorage (with player name and date)
+      const historicScores = JSON.parse(localStorage.getItem('historicScores')) || [];
+      const newScore = {
+        player: playerName || 'Anonymous',
+        score: score,
+        date: new Date().toLocaleString(),
+      };
+      historicScores.push(newScore);
+      localStorage.setItem('historicScores', JSON.stringify(historicScores));
 
-      // Enable confetti when game is over and score is high enough
-      setShowConfetti(true);
+      if (score >= threshold) {
+        fetch('https://official-joke-api.appspot.com/jokes/random')
+          .then((response) => response.json())
+          .then((data) => setJoke(`${data.setup} ${data.punchline}`))
+          .catch(() => setJoke("Couldn't load a joke this time."));
 
-      // Hide confetti after 5 seconds
-      const confettiTimeout = setTimeout(() => {
-        setShowConfetti(false);
-      }, 5000);
-
-      return () => clearTimeout(confettiTimeout);
+        // Enable confetti if score meets the threshold
+        setShowConfetti(true);
+        // Hide confetti after 5 seconds
+        const confettiTimeout = setTimeout(() => {
+          setShowConfetti(false);
+        }, 5000);
+        return () => clearTimeout(confettiTimeout);
+      }
     }
-  }, [gameOver, score]);
+  }, [gameOver, score, playerName]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -104,7 +115,7 @@ const Game = () => {
     setProblem(generateProblem());
   };
 
-  // When the game is over, display the summary, joke, and confetti if applicable
+
   if (gameOver) {
     return (
       <div className="container text-center mt-5" style={{ position: 'relative' }}>
@@ -113,7 +124,7 @@ const Game = () => {
           <Confetti
             width={window.innerWidth}
             height={window.innerHeight}
-            gravity={0.1}  // Lower gravity for a slower descent
+            gravity={0.1} // Lower gravity for a slower descent
             numberOfPieces={100} // Reduced number of pieces
           />
         )}
@@ -121,8 +132,11 @@ const Game = () => {
         <p>Your score: {score}</p>
         {score >= threshold ? (
           <div>
-            <h3>Congratulations! Here's your joke:</h3>
-            <p>{joke ? joke : 'Loading joke...'}</p>
+            {/* Joke is wrapped in an alert box to stand out */}
+            <div className="alert alert-info" role="alert">
+            <h5>Congratulations! Here's your joke:</h5>
+              {joke ? joke : 'Loading joke...'}
+            </div>
           </div>
         ) : (
           <p>Good effort! Try again to earn a joke.</p>
@@ -161,14 +175,11 @@ const Game = () => {
         ) : (
           <p>No attempts recorded.</p>
         )}
-        {/* Play Again Button */}
-        <button className="btn btn-primary mt-4" onClick={restartGame}>
-          Play Again
-        </button>
+        {/* Include the footer with Play Again and Historic Scores buttons */}
+        <Footer onPlayAgain={restartGame} />
       </div>
     );
   }
-
   // During the game, show the current problem, timer, and score
   return (
     <div className="container text-center mt-5">

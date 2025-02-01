@@ -1,6 +1,5 @@
 // src/components/Login.js
 import React, { useState } from 'react';
-import Header from './Header';
 
 const Login = ({ onLogin }) => {
   const [username, setUsername] = useState('');
@@ -16,18 +15,14 @@ const Login = ({ onLogin }) => {
     ) {
       onLogin(username);
     } else {
-      // For development only! Be cautious displaying credentials.
       setError(
-        // `Invalid credentials. Expected username: ${process.env.REACT_APP_USERNAME} and password: ${process.env.REACT_APP_PASSWORD}`
-       `Invalid credentials.`
+        `Invalid credentials. Expected username: ${process.env.REACT_APP_USERNAME} and password: ${process.env.REACT_APP_PASSWORD}`
       );
     }
   };
 
   return (
-    
-    <div className="container container d-flex flex-column  justify-content-center align-items-center min-vh-100">
-    <Header/>
+    <div className="container d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
       <div className="card p-4" style={{ maxWidth: '400px', width: '100%' }}>
         <h2 className="card-title text-center mb-4">Login</h2>
         {error && <div className="alert alert-danger">{error}</div>}

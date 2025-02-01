@@ -1,33 +1,39 @@
 // src/App.js
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Login from './components/Login';
 import Game from './components/Game';
+import HistoricScores from './components/HistoricScores';
 import Header from './components/Header';
-
-
-
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
-  const [user, setUser] = useState(null);
+  const [player, setPlayer] = useState('');
 
-  const handleLogin = username => {
-    setUser(username);
+  const handleLogin = (username) => {
+    setPlayer(username);
     setLoggedIn(true);
   };
 
   return (
-    <div className="App">
-      {loggedIn ? (
-        <div className="container text-center mt-5">
-          <Header/>
-          <h1>Welcome, {user}!</h1>
-          <Game />
-        </div>
-      ) : (
-        <Login onLogin={handleLogin} />
-      )}
-    </div>
+    <Router>
+      <div>
+        <Header />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              loggedIn ? (
+                <Game playerName={player} />
+              ) : (
+                <Login onLogin={handleLogin} />
+              )
+            }
+          />
+          <Route path="/historic-scores" element={<HistoricScores />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
