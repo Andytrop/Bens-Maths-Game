@@ -1,5 +1,6 @@
 // src/components/Login.js
 import React, { useState } from 'react';
+import Header from './Header';
 
 const Login = ({ onLogin }) => {
   const [username, setUsername] = useState('');
@@ -24,7 +25,9 @@ const Login = ({ onLogin }) => {
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center min-vh-100">
+    
+    <div className="container container d-flex flex-column  justify-content-center align-items-center min-vh-100">
+    <Header/>
       <div className="card p-4" style={{ maxWidth: '400px', width: '100%' }}>
         <h2 className="card-title text-center mb-4">Login</h2>
         {error && <div className="alert alert-danger">{error}</div>}

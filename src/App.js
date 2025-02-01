@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Login from './components/Login';
 import Game from './components/Game';
+import Header from './components/Header';
 
 
 
@@ -19,6 +20,7 @@ function App() {
     <div className="App">
       {loggedIn ? (
         <div className="container text-center mt-5">
+          <Header/>
           <h1>Welcome, {user}!</h1>
           <Game />
         </div>
