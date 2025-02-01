@@ -8,7 +8,7 @@ const Login = ({ onLogin }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
+    // Check against environment variables
     if (
       username === process.env.REACT_APP_USERNAME &&
       password === process.env.REACT_APP_PASSWORD
